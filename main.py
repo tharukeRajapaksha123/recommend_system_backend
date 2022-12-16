@@ -1,15 +1,10 @@
-from resuturent_finder import RestaurantFinder
-from reviews_scraper import ReviewScraper
-
+from local_db import LocalDB
+from predict_restaurant import PredictRestaurant
+import pandas as pd
 
 def main():
-    review_scraper = ReviewScraper()
-    restaurant_finder = RestaurantFinder()
-    restaurants = restaurant_finder.finder("bandarawela")
-    for restaurant in restaurants:
-        review_scraper.scraper(restaurant)
-        #print(restaurant)
-        break
+    data = pd.read_csv('./tripadvisor_hotel_reviews.csv')
+
 
 if __name__ == "__main__":
     main()
