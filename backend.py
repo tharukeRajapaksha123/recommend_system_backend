@@ -1,17 +1,17 @@
 import sqlite3
-
 from fastapi import FastAPI
-
 import uvicorn
 import warnings
 import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
-
 from predict_restaurant import PredictRestaurant
 from resuturent_finder import RestaurantFinder
 from reviews_scraper import ReviewScraper
 
+# initilise api instance
 app = FastAPI()
+
+# add cors
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -27,15 +27,21 @@ app.add_middleware(
 warnings.simplefilter("ignore")
 
 
-@app.get("/test")
+# test api endpoint
+@app.get("/")
 async def read_item():
     return {"message": "api working"}
 
 
+# get resturents endpoint
 @app.get("/{place_name}")
 def search_place(place_name: str):
+    # debug print
     print(f"search place called {place_name}")
     try:
+        # checking whether search location is previously searched
+        # if yes it will get data from database and send to user,
+        # else it will scrape data from google maps
         with sqlite3.connect("app.db") as conn:
             cursor = conn.cursor()
             results = cursor.execute(f"SELECT * FROM restaurants WHERE city = '{place_name}'")
@@ -51,6 +57,7 @@ def search_place(place_name: str):
             if len(restaurants) > 0:
                 return {"result": restaurants}
             else:
+                #start scraping
                 review_scraper = ReviewScraper()
                 restaurant_finder = RestaurantFinder()
                 restaurants = restaurant_finder.finder(place_name)
@@ -95,7 +102,9 @@ def search_place(place_name: str):
                     "image": row["image"],
                     "predict_value": row["predict_value"]
                 }
-                cursor.execute(f"INSERT INTO restaurants VALUES  ('{name}','{address}','{phone_number}','{place_name}')")
+                # insert scraped data into database
+                cursor.execute(
+                    f"INSERT INTO restaurants VALUES  ('{name}','{address}','{phone_number}','{place_name}')")
                 conn.commit()
                 response.append(data)
             if not result.empty:

@@ -13,7 +13,7 @@ df=pd.read_table(r"./Restaurant_Reviews.csv")
 
 
 
-
+#set data into x and y axis
 x=df['Review'].values
 y=df['Liked'].values
 
